@@ -37,6 +37,12 @@ NEBULA_DOWNLOAD_CONFIG = {
         "archive_type": "zip",
         "sha256": "…",
     },
+    "windows-amd64.exe": {
+    "url": f"https://github.com/slackhq/nebula/releases/download/v{NEBULA_VERSION}/nebula-windows-amd64.zip",
+    "archive_type": "zip",
+    "sha256": "…",
+},
+
 }
 
 
@@ -102,6 +108,10 @@ def get_executable_path(name):
     if name not in ['nebula', 'nebula-cert']:
         raise ValueError(f"Unsupported executable: {name} should be in ['nebula', 'nebula-cert']")
 
+    # Add .exe extension on Windows
+    if platform.system().lower() == "windows":
+        name = f"{name}.exe"
+    
     path = CACHE_DIR / name
     if not path.exists():
         download_nebula()
