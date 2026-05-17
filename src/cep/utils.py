@@ -8,6 +8,7 @@ import zipfile
 from importlib import resources
 from pathlib import Path
 
+import json
 import os
 from result import Result, Ok, Err
 from typing import List
@@ -32,6 +33,11 @@ NEBULA_DOWNLOAD_CONFIG = {
         "archive_type": "tar.gz",
         "sha256": "…",
     },
+    "linux-arm64": {
+        "url": f"https://github.com/slackhq/nebula/releases/download/v{NEBULA_VERSION}/nebula-linux-arm64.tar.gz",
+        "archive_type": "tar.gz",
+        "sha256": "…",
+    },
     "darwin-amd64": {
         "url": f"https://github.com/slackhq/nebula/releases/download/v{NEBULA_VERSION}/nebula-darwin.zip",
         "archive_type": "zip",
@@ -50,15 +56,15 @@ def get_platform():
     system = platform.system().lower()
 
     if system == "linux" and machine in ("x86_64", "amd64"):
-        platform_name = "linux-amd64"
+        return "linux-amd64"
+    elif system == "linux" and machine in ("arm64", "aarch64"):
+        return "linux-arm64"
     elif system == "darwin" and machine in ("arm64", "aarch64"):
-        platform_name = "darwin-arm64"
+        return "darwin-arm64"
     elif system == "darwin":
-        platform_name = "darwin-amd64"
-    elif system == "windows":
-        platform_name = "windows-amd64.exe"
-
-    return platform_name
+        return "darwin-amd64"
+    else:
+        raise RuntimeError(f"Unsupported platform: {system}-{machine}")
 
 
 def extract_archive(
@@ -99,7 +105,7 @@ def download_nebula():
                 target_dir=CACHE_DIR,
                 )
         nebula_path.chmod(nebula_path.stat().st_mode | stat.S_IEXEC)
-        nebula_path.chmod(nebula_cert_path.stat().st_mode | stat.S_IEXEC)
+        nebula_cert_path.chmod(nebula_cert_path.stat().st_mode | stat.S_IEXEC)
         archive_path.unlink()
 
 
@@ -132,3 +138,12 @@ def get_template_path(name):
             ) as template_path:
         path = Path(template_path)
         return path if path.exists() else None
+
+def parse_stdout(stream: str) -> dict[str, str] | str:
+    try:
+        json_stdout = json.loads(stream)
+    except json.JSONDecodeError as e:
+        print(f"Invalid JSON encountered, stripping os-added spaces: {e}")
+        json_stdout =  ''.join(line.strip() for line in stream.splitlines())
+        json_stdout = json.loads(json_stdout)
+    return json_stdout

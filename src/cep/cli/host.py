@@ -24,6 +24,7 @@ from cep.datamodels import (
 from cep.utils import (
         get_executable_path,
         get_template_path,
+        parse_stdout,
         )
 from cep.cli.utils import (
         CLI_DATA_DIR,
@@ -103,6 +104,8 @@ class CepBundle(BaseModel):
                     arcname = path.relative_to(tmpdir)
                     zf.write(path, arcname)
 
+        print("saved cep bundle at: {0}".format(output_path))
+ 
         return output_path
 
 
@@ -315,8 +318,13 @@ def connect(network_name: str,
         'print',
         '-path', cert_path,
         ], capture_output=True, text=True)
-    tld = json.loads(result.stdout)['details']['name'].split('.')[-1]
-    ip = json.loads(result.stdout)['details']['networks'][0].split('/')[0]
+
+    json_stdout = parse_stdout(result.stdout) 
+
+
+    #TODO: getters instead of indexing, tbd during archive fixes
+    tld = json_stdout['details']['name'].split('.')[-1]
+    ip = json_stdout['details']['networks'][0].split('/')[0]
 
     command = [
             nebula_executable_path,
