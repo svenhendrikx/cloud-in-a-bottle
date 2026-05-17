@@ -68,6 +68,8 @@ uv run cep host connect mynetwork server
 # Additional hosts can be regular (non-lighthouse)
 uv run cep host create mynetwork laptop
 uv run cep host connect mynetwork laptop
+# create host config as a bundle
+uv run cep host create mynetwork laptop --bundle
 ```
 
 ## CLI Commands
