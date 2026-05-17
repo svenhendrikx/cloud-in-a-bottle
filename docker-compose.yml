@@ -35,6 +35,7 @@ services:
     volumes:
       # dev
       - ./src:/app/src
+      - ~/.config/nebula/bundles:/root/.config/nebula/bundles
 
 
   cep-main:

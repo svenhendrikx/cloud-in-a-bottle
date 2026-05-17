@@ -30,6 +30,10 @@ from cep.cli.utils import (
         CLI_DATA_DIR,
         get_client,
         )
+from cep.utils import CACHE_DIR
+
+BUNDLE_DIR = CACHE_DIR / "bundles"
+BUNDLE_DIR.mkdir(parents=True, exist_ok=True)
 
 RUNTIME_PATH = CLI_DATA_DIR / "runtime.json"
 
@@ -67,7 +71,7 @@ class CepBundle(BaseModel):
         metadata = self.generate_metadata()
 
         output_name = f"{self.host_name}.cepbundle"
-        output_path = Path.cwd() / output_name
+        output_path = BUNDLE_DIR / output_name
 
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir = Path(tmpdir)
@@ -81,10 +85,23 @@ class CepBundle(BaseModel):
             # -----------------
             # Copy Nebula files
             # -----------------
-            shutil.copy2(self.config_out_path, nebula_dir / self.config_out_path.name)
             shutil.copy2(self.ca_crt_path, nebula_dir / self.ca_crt_path.name)
             shutil.copy2(self.crt_path, nebula_dir / self.crt_path.name)
             shutil.copy2(self.priv_key_path, nebula_dir / self.priv_key_path.name)
+
+            # Rewrite config pki paths to filenames only so the bundle is
+            # portable instead of abs path — all files sit together in the nebula/ directory.
+            
+            with open(self.config_out_path) as f:
+                config = yaml.safe_load(f)
+            config['pki'] = {
+                'key': self.priv_key_path.name,
+                'cert': self.crt_path.name,
+                'ca': self.ca_crt_path.name,
+            }
+            bundle_config_path = nebula_dir / self.config_out_path.name
+            with open(bundle_config_path, 'w') as f:
+                yaml.safe_dump(config, f)
 
             # -----------------
             # Write bundle.json
@@ -124,7 +141,7 @@ def create(network_name: str,
            am_lighthouse: bool = False,
            public_ip: str = None,
            output_dir: Path = CLI_DATA_DIR,
-           bundle: bool = True,
+           bundle: bool = False,
            ) -> list[Path]:
 
     if am_lighthouse and not public_ip:
@@ -155,7 +172,7 @@ def create(network_name: str,
             ca_crt_path=host_data_path / 'ca.crt',
             config_out_path=host_data_path / 'config.yml',
             )
-
+    print(nebula_cert_executable_path)  
     subprocess.run([
         nebula_cert_executable_path,
         'keygen',
@@ -321,9 +338,6 @@ def connect(network_name: str,
 
     json_stdout = parse_stdout(result.stdout) 
     
-    if not isinstance(json_stdout, dict):
-        print(f"JSON invalid despite stripping os-added spaces")
-        return None 
     
     #TODO: getters instead of indexing, tbd during archive fixes
     tld = json_stdout['details']['name'].split('.')[-1]

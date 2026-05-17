@@ -21,6 +21,10 @@ DATA_DIR = Path(user_data_dir(APP_NAME))
 DATA_DIR.mkdir(exist_ok=True, parents=True)
 CACHE_DIR = Path.home() / ".cache" / "nebula"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+CONFIG_DIR = Path.home() / ".config" / "nebula"
+CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
 APP_TEMPLATE_PATH = os.getcwd() + "/src/cep/app_templates/"
 
 CEP_SERVER_CFG_PATH = Path('.cepservercfg')
@@ -139,7 +143,7 @@ def get_template_path(name):
         path = Path(template_path)
         return path if path.exists() else None
 
-def parse_stdout(stream: str) -> dict[str, str] | str:
+def parse_stdout(stream: str) -> dict[str, str]:
     try:
         json_stdout = json.loads(stream)
     except json.JSONDecodeError as e:

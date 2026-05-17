@@ -12,4 +12,4 @@ wheels/
 .cloudboxcfg
 .cloudboxservercfg
 .env
-.cepbundle
+*.cepbundle
