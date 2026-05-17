@@ -235,6 +235,8 @@ Nodes must be able to share:
 - Single-node + basic network federation
 - trust + identity
 - auth integration
+- Extensive test coverage
+- Baseline build + integration pipeline
 
 
 ## Phase 2
