@@ -124,7 +124,7 @@ def create(network_name: str,
            am_lighthouse: bool = False,
            public_ip: str = None,
            output_dir: Path = CLI_DATA_DIR,
-           bundle: bool = True,
+           bundle: bool = False,
            ) -> list[Path]:
 
     if am_lighthouse and not public_ip:
@@ -320,11 +320,8 @@ def connect(network_name: str,
         ], capture_output=True, text=True)
 
     json_stdout = parse_stdout(result.stdout) 
-    
-    if not isinstance(json_stdout, dict):
-        print(f"JSON invalid despite stripping os-added spaces")
-        return None 
-    
+
+
     #TODO: getters instead of indexing, tbd during archive fixes
     tld = json_stdout['details']['name'].split('.')[-1]
     ip = json_stdout['details']['networks'][0].split('/')[0]
