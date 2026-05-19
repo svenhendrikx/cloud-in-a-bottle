@@ -42,8 +42,6 @@ class ComposeConfig(BaseModel):
 
     @classmethod
     def load(cls, path: Path) -> "ComposeConfig":
-        if not path.exists():
-            return cls()
         data = yaml.safe_load(path.read_text()) or {}
         return cls(**data)
 
