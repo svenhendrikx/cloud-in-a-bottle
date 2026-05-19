@@ -33,11 +33,13 @@ def stop_dns():
     return resp
 
 
+# TODO: test_this implicitly with dns api integration tests
 def add_host_to_dns(aaaa_request: AddAAAARequest):
     resp = client.post("/records", json=aaaa_request.model_dump(mode="json"))
     return resp
 
 
+# TODO: test_this implicitly with dns api integration tests
 def remove_host_from_dns(name: str):
     resp = client.delete(f"/records/{name}")
     return resp

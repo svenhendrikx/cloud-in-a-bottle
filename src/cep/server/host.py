@@ -1,8 +1,6 @@
-import secrets
 import subprocess
 import tempfile
 import zipfile
-from ipaddress import IPv6Address
 from pathlib import Path
 
 from fastapi import APIRouter
@@ -14,7 +12,8 @@ from cep.datamodels import (
         HostRecord,
         CertificateRequest,
         HostRequest,
-        AddAAAARequest
+        AddAAAARequest,
+        SignedCertificate,
         )
 from cep.server.utils import (
         SERVER_DATA_DIR,
@@ -27,12 +26,6 @@ from cep.server.dns import (
         )
 
 host_router = APIRouter(prefix="/host")
-
-
-def random_host_ip(prefix) -> IPv6Address:
-    return IPv6Address(
-            int(prefix.network_address) | secrets.randbits(64)
-            )
 
 
 @host_router.post("/create")
@@ -52,12 +45,7 @@ def create(request: HostRequest) -> HostRecord:
                 detail=f"Host '{request.name}' already exists in network '{request.network_name}'",
                 )
 
-    if len(network_record.hosts) == 0:
-        # First host gets [subnet]::1, the rest gets random ips
-        ip = next(network_record.subnet.hosts())
-    else:
-        ip = random_host_ip(network_record.subnet)
-
+    ip = network_record.get_ip_address()
     host_record = HostRecord(
             name=request.name,
             ip=ip,
@@ -77,6 +65,7 @@ def create(request: HostRequest) -> HostRecord:
     return host_record
 
 
+# TODO: test_this implicitly with dns api integration tests
 @host_router.delete("/delete")
 def delete(network_name: str, host_name: str):
     network_store = load_db()
@@ -93,6 +82,7 @@ def delete(network_name: str, host_name: str):
     return {"status": "deleted"}
 
 
+#TODO: test_this: create dummy database and check if the contents match the spec
 @host_router.get("/show")
 def show(network_name: str, host_name: str) -> HostRecord:
     network_store = load_db()
@@ -112,8 +102,8 @@ def show(network_name: str, host_name: str) -> HostRecord:
     return host_record
 
 
-@host_router.post("/sign")
-def sign(request: CertificateRequest):
+#TODO: test_this
+def _sign(request: CertificateRequest) -> SignedCertificate:
     network_name = request.network_name
     host_name = request.host_name
 
@@ -131,6 +121,7 @@ def sign(request: CertificateRequest):
 
     ca_cert_path = SERVER_DATA_DIR / network_name / 'ca.crt'
     ca_key_path = SERVER_DATA_DIR / network_name / 'ca.key'
+
     nebula_cert_executable_path = get_executable_path('nebula-cert')
     subprocess.run([
         nebula_cert_executable_path,
@@ -143,7 +134,22 @@ def sign(request: CertificateRequest):
         '-out-crt', cert_path,
         ], capture_output=True, text=True)
 
+    return SignedCertificate(
+            ca_cert_path=ca_cert_path,
+            ca_key_path=ca_key_path,
+            cert_path=cert_path,
+            )
+
+
+@host_router.post("/sign")
+def sign(request: CertificateRequest):
+    signed_certificate = _sign(request)
+    cert_path = signed_certificate.cert_path
+    ca_cert_path = signed_certificate.ca_cert_path
+
+    tempdir = cert_path.parent
     zip_path = Path(tempdir) / "nebula-certs.zip"
+
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
         z.write(cert_path, arcname=cert_path.name)
         z.write(ca_cert_path, arcname=ca_cert_path.name)
