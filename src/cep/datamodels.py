@@ -17,6 +17,7 @@ class AddAAAARequest(BaseModel):
     ip: str
 
 
+#TODO: test_this: both serializers 
 class NetworkRecord(BaseModel):
     name: str
     subnet: ipaddress.IPv6Network
@@ -99,6 +100,7 @@ class HostRequest(BaseModel):
             raise ValueError("Non-lighthouses must not have a public_ip")
         return self
 
+LighthouseResponse = dict[str, str]
 
 class Container(BaseModel):
     version: int

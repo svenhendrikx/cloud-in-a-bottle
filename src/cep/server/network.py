@@ -7,7 +7,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 
 from cep.utils import get_executable_path
-from cep.datamodels import NetworkRecord
+from cep.datamodels import LighthouseResponse, NetworkRecord
 from cep.server.utils import (
         SERVER_DATA_DIR,
         save_db,
@@ -22,13 +22,14 @@ from cep.server.dns import (
 
 network_router = APIRouter(prefix="/network")
 
-
+#TODO: test_this: make sure the the last 64 bits needs to be zero valued, needs to return valid
+# IPV6
 def generate_ula_prefix() -> IPv6Network:
     random_56bits = secrets.randbits(56)
     prefix = (0xfd << 120) | (random_56bits << 64)
     return IPv6Network((prefix, 64))
 
-
+#TODO: test_this
 def create_ca(name: str, ca_dir: Path) -> Path:
     nebula_cert_executable_path = get_executable_path('nebula-cert')
     subprocess.run([
@@ -69,7 +70,7 @@ def create(name: str, dns: bool) -> NetworkRecord:
 
     return network_record
 
-
+#TODO: test_this: make sure network_record deletion is tested
 @network_router.delete("/delete")
 def delete(name: str):
     network_data_dir = SERVER_DATA_DIR / name
@@ -96,6 +97,7 @@ def delete(name: str):
     return
 
 
+#TODO: test_this: create dummy database and check if the contents match the spec
 @network_router.get("/show")
 def show(name: str) -> NetworkRecord:
     network_store = load_db()
@@ -107,12 +109,12 @@ def show(name: str) -> NetworkRecord:
 
 
 @network_router.get("/lighthouses")
-def lighthouses(network_name: str) -> dict:
+def lighthouses(network_name: str) -> LighthouseResponse:
     network_store = load_db()
     network_record = network_store.networks.get(network_name, None)
     if not network_record:
         raise HTTPException(status_code=404, detail="Network not found")
-
+    #TODO:test_this: test this implicitely in an integration test of lighthouses
     lighthouse_mapping = {
             str(host.ip): f"[{str(host.public_ip)}]:4242" if isinstance(host.public_ip, IPv6Address) else f"{str(host.public_ip)}:4242"
             for host in network_record.hosts.values()
