@@ -9,10 +9,17 @@ dependencies = [
     "platformdirs>=4.5.1",
     "psutil>=7.2.1",
     "pydantic>=2.12.5",
+    "python-dotenv>=1.0.0",
     "pyyaml>=6.0.3",
     "rich>=14.2.0",
     "typer>=0.20.0",
     "result", #last version as this is not maintained anymore
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=6",
 ]
 
 [project.scripts]
@@ -20,3 +27,7 @@ cep = "cep.cli.main:app"
 
 [tool.setuptools.package-data]
 cep = ["templates/*.yaml", "apps/app_templates/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
