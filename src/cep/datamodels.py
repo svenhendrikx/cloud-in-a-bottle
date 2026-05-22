@@ -47,10 +47,9 @@ class NetworkRecord(BaseModel):
     def get_ip_address(self):
         if len(self.hosts) == 0:
             # First host gets [subnet]::1, the rest gets random ips
-            ip = next(self.subnet.hosts())
+            return next(self.subnet.hosts())
         else:
-            ip = _random_host_ip(self.subnet)
-
+            return _random_host_ip(self.subnet)
 
 class NetworkStore(BaseModel):
     networks: dict[str, NetworkRecord]

@@ -27,7 +27,7 @@ from cep.server.dns import (
 
 host_router = APIRouter(prefix="/host")
 
-
+#TODO: test_this by creating host with and without dns make sure saving works as expected 
 @host_router.post("/create")
 def create(request: HostRequest) -> HostRecord:
     network_store = load_db()

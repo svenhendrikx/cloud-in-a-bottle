@@ -2,9 +2,18 @@
 Tests for host router endpoints and the _sign helper.
 
 TODO references:
+  server/host.py:30  – /create "test with and without dns make sure saving works as expected"
   server/host.py:68  – /delete (implicit via DNS integration)
   server/host.py:85  – /show "create dummy database and check if the contents match the spec"
   server/host.py:105 – _sign
+
+create:
+- Host is persisted in the DB after a successful call
+- Host IP is within the network subnet
+- Creating with add_dns_record=True calls add_host_to_dns
+- Creating with add_dns_record=False does NOT call add_host_to_dns
+- Returns 404 for an unknown network
+- Returns 409 when the host already exists
 
 delete:
 - Removes host from DB
@@ -79,6 +88,83 @@ def _seed_host(
     store.networks[network_name].hosts[host_name] = host
     save_db(store)
     return host
+
+
+# ---------------------------------------------------------------------------
+# /host/create
+# ---------------------------------------------------------------------------
+
+class TestHostCreate:
+    _LIGHTHOUSE_PAYLOAD = {
+        "name": "lh1",
+        "network_name": "testnet",
+        "is_lighthouse": True,
+        "public_ip": "1.2.3.4",
+        "add_dns_record": False,
+    }
+    _NODE_PAYLOAD = {
+        "name": "node1",
+        "network_name": "testnet",
+        "is_lighthouse": False,
+        "add_dns_record": False,
+    }
+
+    def test_host_is_persisted_in_db(self, api, server_dir):
+        seed_network(server_dir, name="testnet")
+
+        resp = api.post("/host/create", json=self._LIGHTHOUSE_PAYLOAD)
+
+        assert resp.status_code == 200
+        store = load_db()
+        assert "lh1" in store.networks["testnet"].hosts
+
+    def test_host_ip_is_within_network_subnet(self, api, server_dir):
+        seed_network(server_dir, name="testnet")
+
+        resp = api.post("/host/create", json=self._NODE_PAYLOAD)
+
+        assert resp.status_code == 200
+        store = load_db()
+        host_ip = store.networks["testnet"].hosts["node1"].ip
+        subnet = store.networks["testnet"].subnet
+        assert host_ip in subnet
+
+    def test_create_with_dns_calls_add_host_to_dns(self, api, server_dir, monkeypatch):
+        seed_network(server_dir, name="testnet")
+        dns_calls = []
+        monkeypatch.setattr(
+            "cep.server.host.add_host_to_dns",
+            lambda req: dns_calls.append(req),
+        )
+
+        payload = {**self._NODE_PAYLOAD, "add_dns_record": True}
+        api.post("/host/create", json=payload)
+
+        assert len(dns_calls) == 1
+
+    def test_create_without_dns_does_not_call_add_host_to_dns(self, api, server_dir, monkeypatch):
+        seed_network(server_dir, name="testnet")
+        dns_calls = []
+        monkeypatch.setattr(
+            "cep.server.host.add_host_to_dns",
+            lambda req: dns_calls.append(req),
+        )
+
+        api.post("/host/create", json=self._NODE_PAYLOAD)  # add_dns_record=False
+
+        assert dns_calls == []
+
+    def test_returns_404_for_unknown_network(self, api, server_dir):
+        payload = {**self._NODE_PAYLOAD, "network_name": "ghost"}
+        resp = api.post("/host/create", json=payload)
+        assert resp.status_code == 404
+
+    def test_returns_409_when_host_already_exists(self, api, server_dir):
+        seed_network(server_dir, name="testnet")
+        api.post("/host/create", json=self._LIGHTHOUSE_PAYLOAD)
+
+        resp = api.post("/host/create", json=self._LIGHTHOUSE_PAYLOAD)
+        assert resp.status_code == 409
 
 
 # ---------------------------------------------------------------------------

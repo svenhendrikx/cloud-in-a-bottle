@@ -135,7 +135,7 @@ def create(network_name: str,
         lighthouse_mapping_response = network_client.get(
                 "/lighthouses",
                 params={'network_name': network_name}
-                )
+    )
         lighthouse_mapping_response.raise_for_status()
         static_host_map = lighthouse_mapping_response.json()
         if not static_host_map:
@@ -177,7 +177,6 @@ def create(network_name: str,
             json=host_request.model_dump(mode="json")
             )
     host_response.raise_for_status()
-    ip = host_response.json()['ip']
 
     certificate_request = CertificateRequest(
             network_name=network_name,
