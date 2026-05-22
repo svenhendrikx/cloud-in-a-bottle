@@ -65,7 +65,7 @@ def create(request: HostRequest) -> HostRecord:
     return host_record
 
 
-# TODO: test_this implicitly with dns api integration tests
+# TODO: test_this (DONE!!) implicitly with dns api integration tests
 @host_router.delete("/delete")
 def delete(network_name: str, host_name: str):
     network_store = load_db()
@@ -82,7 +82,7 @@ def delete(network_name: str, host_name: str):
     return {"status": "deleted"}
 
 
-#TODO: test_this: create dummy database and check if the contents match the spec
+#TODO: test_this (DONE!!): create dummy database and check if the contents match the spec
 @host_router.get("/show")
 def show(network_name: str, host_name: str) -> HostRecord:
     network_store = load_db()
@@ -102,7 +102,7 @@ def show(network_name: str, host_name: str) -> HostRecord:
     return host_record
 
 
-#TODO: test_this
+#TODO: test_this (DONE!!)
 def _sign(request: CertificateRequest) -> SignedCertificate:
     network_name = request.network_name
     host_name = request.host_name

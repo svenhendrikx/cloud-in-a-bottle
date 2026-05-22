@@ -26,7 +26,7 @@ def _random_host_ip(prefix) -> IPv6Address:
 
 
 
-#TODO: test_this: both serializers and get_ip_address
+#TODO: test_this (DONE!!): both serializers and get_ip_address
 class NetworkRecord(BaseModel):
     name: str
     subnet: ipaddress.IPv6Network

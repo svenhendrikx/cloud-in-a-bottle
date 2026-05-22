@@ -22,14 +22,14 @@ from cep.server.dns import (
 
 network_router = APIRouter(prefix="/network")
 
-#TODO: test_this: make sure the the last 64 bits needs to be zero valued, needs to return valid
+#TODO: test_this (DONE!!): make sure the the last 64 bits needs to be zero valued, needs to return valid
 # IPV6
 def generate_ula_prefix() -> IPv6Network:
     random_56bits = secrets.randbits(56)
     prefix = (0xfd << 120) | (random_56bits << 64)
     return IPv6Network((prefix, 64))
 
-#TODO: test_this
+#TODO: test_this (DONE!!)
 def create_ca(name: str, ca_dir: Path) -> Path:
     nebula_cert_executable_path = get_executable_path('nebula-cert')
     subprocess.run([
@@ -70,7 +70,7 @@ def create(name: str, dns: bool) -> NetworkRecord:
 
     return network_record
 
-#TODO: test_this: make sure network_record deletion is tested
+#TODO: test_this (DONE!!): make sure network_record deletion is tested
 @network_router.delete("/delete")
 def delete(name: str):
     network_data_dir = SERVER_DATA_DIR / name
@@ -97,7 +97,7 @@ def delete(name: str):
     return
 
 
-#TODO: test_this: create dummy database and check if the contents match the spec
+#TODO: test_this (DONE!!): create dummy database and check if the contents match the spec
 @network_router.get("/show")
 def show(name: str) -> NetworkRecord:
     network_store = load_db()
