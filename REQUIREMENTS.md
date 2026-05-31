@@ -2,11 +2,10 @@
 
 A user-friendly, self-hosted platform that:
 
-- abstracts infrastructure complexity
-- leverages existing packaging ecosystems to deploy a wide range of applications for non technical users
-- and enables peer-to-peer federation for resilience and availability
-
-
+- Abstracts infrastructure complexity
+- Leverages existing packaging ecosystems to deploy a wide range of applications for non technical users
+- Enables peer-to-peer federation for resilience and availability
+- Enables peer-to-peer private sharing of resources, compute and federated deployment of tools/apps otherwise too expensive to run on your own
 
 ## 1. Core Functional Requirements
 ### 1.1 Application lifecycle management
@@ -25,6 +24,7 @@ You need a unified app definition format that can map to:
 - Docker Compose / OCI images
 - Nix derivations
 - Helm charts (optional)
+- Ray jobs
 
 App = declarative spec
 
@@ -36,6 +36,8 @@ The system should support:
 - Containers (OCI/Docker/Podman)
 - Orchestrators (Kubernetes)
 - (Optional) Native packages (NixOS)
+- Ray (or any drop in parallelization framework)
+- Gvisor and safe code execution platforms
 
 The system should prioritize security when choosing a backend.
 
@@ -64,6 +66,8 @@ Must support:
 - Local storage
 - Distributed storage (eventually)
 - RBAC + encryption on logical/volume level
+- Compute parallelization (not necessarily embarassingly parallel, Phase 4)
+- Telemetry for uptime reliability
 
 Key requirement:
 
@@ -89,7 +93,7 @@ cep storage volume show data
 - Secure peer-to-peer connectivity
 - Peer validation
 
-You already identified Nebula, which is a strong fit.
+We already identified Nebula, which is a strong fit.
 
 Requirement:
 
@@ -224,6 +228,7 @@ Nodes must be able to share:
 - System health overview
 - Federation status
 - Resource usage
+- Uptime/Reliability of shared users (maps to phase 4 for uptime incentives)
 
 
 
