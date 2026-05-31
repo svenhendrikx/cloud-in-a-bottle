@@ -25,6 +25,7 @@ from cep.utils import (
         get_executable_path,
         get_template_path,
         parse_stdout,
+        change_path_to_relative
         )
 from cep.cli.utils import (
         CLI_DATA_DIR,
@@ -81,6 +82,7 @@ class CepBundle(BaseModel):
             # -----------------
             # Copy Nebula files
             # -----------------
+
             shutil.copy2(self.config_out_path, nebula_dir / self.config_out_path.name)
             shutil.copy2(self.ca_crt_path, nebula_dir / self.ca_crt_path.name)
             shutil.copy2(self.crt_path, nebula_dir / self.crt_path.name)
@@ -94,6 +96,8 @@ class CepBundle(BaseModel):
                 json.dumps(metadata, indent=2),
                 encoding="utf-8",
             )
+            
+            change_path_to_relative(self.config_out_path)
 
             # -----------------
             # Create zip artifact
