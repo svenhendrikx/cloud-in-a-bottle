@@ -97,7 +97,7 @@ class CepBundle(BaseModel):
                 encoding="utf-8",
             )
             
-            change_path_to_relative(self.config_out_path)
+            change_path_to_relative(nebula_dir / self.config_out_path.name)
 
             # -----------------
             # Create zip artifact

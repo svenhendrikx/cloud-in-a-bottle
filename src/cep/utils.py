@@ -140,9 +140,15 @@ def get_available_path_templates(app_name: str) -> Result[List[str], str]:
 def change_path_to_relative(path: Path):
     """ small helper to write back a relative path to bundle"""
     data = yaml.safe_load(path.read_text()) or {}
-    print("PATH:///", data)
     if not data:
         raise IOError
+    
+    if 'pki' in data:
+        for key in ['ca', 'cert', 'key']:
+            if key in data['pki']:
+                data['pki'][key] = Path(data['pki'][key]).name
+                
+    path.write_text(yaml.safe_dump(data))
     
 
 #TODO: test_this (DONE!!)
