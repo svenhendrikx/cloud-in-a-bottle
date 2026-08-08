@@ -1,3 +1,4 @@
+import os
 from os import mkdir
 import subprocess
 from importlib import resources
@@ -42,8 +43,11 @@ class ComposeConfig(BaseModel):
 
     @classmethod
     def load(cls, path: Path) -> "ComposeConfig":
-        data = yaml.safe_load(path.read_text()) or {}
-        return cls(**data)
+        try:
+            data = yaml.safe_load(path.read_text())
+            return cls(**data)
+        except FileNotFoundError:
+            return cls(**{})
 
     def save(self, path: Path) -> None:
         path.write_text(
