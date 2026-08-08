@@ -74,7 +74,7 @@ class Docker():
                 f"Available apps are {Docker.list_available_apps()}",
                 ])
             raise ValueError(msg)
-
+    #TODO: test_this: validate templates
     @staticmethod
     def add_to_deployment_file(app_config: ComposeConfig):
 
@@ -88,12 +88,18 @@ class Docker():
             for key, value in top_level_app_config.items():
                 top_level_deployment_config[key] = value
         deployment_config.save(DEPLOYMENT_PATH)
-
+ 
+    #TODO: test_this: deployment_config and logging correctness when failing 
     @staticmethod
     def update_deployment_file(name: str):
         deployment_config = ComposeConfig.load(DEPLOYMENT_PATH)
         if not deployment_config.services.get(name):
-            "Err handling tba"
+            msg = "\n".join([
+                f"App {name} not found in template deployment_config",
+                f"Available services are {list(deployment_config.services.keys())}",
+                ])
+            LOGGER.info(msg)
+            return
         del deployment_config.services[name]
         deployment_config.save(DEPLOYMENT_PATH)
  

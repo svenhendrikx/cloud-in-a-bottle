@@ -11,6 +11,7 @@ DB_PATH = SERVER_DATA_DIR / 'db.json'
 STORAGE_DB_PATH = SERVER_DATA_DIR / 'storage_db.json'
 CEP_SERVER_CFG_PATH = Path.home() / '.cepservercfg'
 
+#TODO: test_this (DONE!!): existing and non existing dbs need to be identified
 def load_db() -> NetworkStore:
     if not DB_PATH.exists():
         return NetworkStore(networks={})
@@ -20,7 +21,7 @@ def load_db() -> NetworkStore:
 
     return NetworkStore.model_validate(raw)
 
-
+#TODO: test_this (DONE!!): existing and non existing dbs need to be identified
 def save_db(store: NetworkStore) -> None:
     with DB_PATH.open("w", encoding="utf-8") as f:
         json.dump(

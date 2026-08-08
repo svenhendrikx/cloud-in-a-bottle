@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import ipaddress
-from typing import Optional, Union, List
+import secrets
 from enum import Enum
+from ipaddress import IPv6Address
+from pathlib import Path
+from typing import Optional, Union, List
 
 from pydantic import (
         BaseModel,
@@ -16,7 +19,14 @@ class AddAAAARequest(BaseModel):
     name: str
     ip: str
 
+def _random_host_ip(prefix) -> IPv6Address:
+    return IPv6Address(
+            int(prefix.network_address) | secrets.randbits(64)
+            )
 
+
+
+#TODO: test_this (DONE!!): both serializers and get_ip_address
 class NetworkRecord(BaseModel):
     name: str
     subnet: ipaddress.IPv6Network
@@ -34,6 +44,12 @@ class NetworkRecord(BaseModel):
             return ipaddress.IPv6Network(value)
         return value
 
+    def get_ip_address(self):
+        if len(self.hosts) == 0:
+            # First host gets [subnet]::1, the rest gets random ips
+            return next(self.subnet.hosts())
+        else:
+            return _random_host_ip(self.subnet)
 
 class NetworkStore(BaseModel):
     networks: dict[str, NetworkRecord]
@@ -84,6 +100,12 @@ class CertificateRequest(BaseModel):
     pub_key: str
 
 
+class SignedCertificate(BaseModel):
+    ca_cert_path: Path
+    ca_key_path: Path
+    cert_path: Path
+
+
 class HostRequest(BaseModel):
     name: str
     network_name: str
@@ -99,6 +121,7 @@ class HostRequest(BaseModel):
             raise ValueError("Non-lighthouses must not have a public_ip")
         return self
 
+LighthouseResponse = dict[str, str]
 
 class Container(BaseModel):
     version: int

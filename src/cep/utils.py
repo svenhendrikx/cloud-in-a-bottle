@@ -51,6 +51,7 @@ NEBULA_DOWNLOAD_CONFIG = {
 }
 
 
+#TODO: test_this (DONE!!): Just do linux
 def get_platform():
     machine = platform.machine().lower()
     system = platform.system().lower()
@@ -67,6 +68,7 @@ def get_platform():
         raise RuntimeError(f"Unsupported platform: {system}-{machine}")
 
 
+#TODO: test_this (DONE!!)
 def extract_archive(
         archive_path: Path,
         archive_type: str,
@@ -84,6 +86,7 @@ def extract_archive(
         raise ValueError(f"Unsupported archive type: {archive_type}")
 
 
+#TODO: test_this (DONE!!)
 def download_nebula():
 
     platform_name = get_platform()
@@ -109,6 +112,7 @@ def download_nebula():
         archive_path.unlink()
 
 
+#TODO: test_this (DONE!!)
 def get_executable_path(name):
     if name not in ['nebula', 'nebula-cert']:
         raise ValueError(f"Unsupported executable: {name} should be in ['nebula', 'nebula-cert']")
@@ -132,6 +136,7 @@ def get_available_path_templates(app_name: str) -> Result[List[str], str]:
 
     return Err("Pointing to inexistent directory")
 
+#TODO: test_this (DONE!!)
 def get_template_path(name):
     with resources.as_file(
             resources.files("cep.templates").joinpath(name)
@@ -139,6 +144,7 @@ def get_template_path(name):
         path = Path(template_path)
         return path if path.exists() else None
 
+#TODO: test_this (DONE!!)
 def parse_stdout(stream: str) -> dict[str, str] | str:
     try:
         json_stdout = json.loads(stream)

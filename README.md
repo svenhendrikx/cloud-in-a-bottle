@@ -131,3 +131,52 @@ A lighthouse is a host with a stable public IP that coordinates connections betw
 - The app store requires access to the Docker socket (`/var/run/docker.sock`) - this is a known privilege escalation vector
 - Token-based authentication is used between components
 - In production, isolate the app store in its own security context
+
+## Unit Tests
+
+The test suite uses [pytest](https://pytest.org) and covers the server routers, CLI commands, data models, utility functions, and generated artifacts. All tests run without a live server — HTTP clients and subprocesses are mocked.
+
+### Setup
+
+Install the dev dependencies (pytest and pytest-cov are in the `dev` group):
+
+```bash
+uv sync --group dev
+uv pip install -e .
+```
+
+### Running tests
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run with coverage report
+uv run pytest --cov=cep --cov-report=term-missing
+
+# Run a specific file or test
+uv run pytest tests/test_server_network.py
+uv run pytest tests/test_cli_host.py::TestHostCreate
+```
+
+### Test structure
+
+| File | What is tested |
+|------|----------------|
+| `tests/conftest.py` | Shared fixtures (isolated DB, mocked DNS, TestClient, CliRunner) |
+| `tests/test_datamodels.py` | Pydantic model validation and serialization roundtrips |
+| `tests/test_utils.py` | `parse_stdout`, `get_platform`, `extract_archive`, `get_template_path` |
+| `tests/test_storage_docker.py` | `Pool` / `Volume` filesystem operations and error handling |
+| `tests/test_server_utils.py` | Network and storage DB load/save roundtrips |
+| `tests/test_server_network.py` | `/network` router via FastAPI `TestClient` |
+| `tests/test_server_host.py` | `/host` router via FastAPI `TestClient` |
+| `tests/test_apps_docker.py` | `ComposeConfig` and `Docker` class methods (templates, deployment file management) |
+| `tests/test_appstore_server.py` | Appstore FastAPI routes (`/health`, `/list`, `/deploy`, `/clear`, etc.) |
+| `tests/test_cli_bundle.py` | `CepBundle` metadata generation and `.cepbundle` zip artifact structure |
+| `tests/test_cli_dns.py` | `NebulaDNS` helpers and `dns` CLI commands |
+| `tests/test_cli_network.py` | `network` CLI commands via Typer `CliRunner` |
+| `tests/test_cli_host.py` | `host` CLI commands via Typer `CliRunner` |
+| `tests/test_cli_apps.py` | `apps deploy/list/store/targeted-destroy/clear` CLI commands |
+| `tests/test_cli_storage.py` | `storage pool` and `storage volume` CLI commands |
+
+> **Note:** `CEP_SERVER_TOKEN` is automatically cleared during server tests so the test client does not need auth credentials.
